@@ -42,9 +42,9 @@ export async function switchToSepolia(): Promise<void> {
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: '0xaa36a7' }], // Sepolia chainId in hex
     })
-  } catch (switchError: any) {
+  } catch (switchError: unknown) {
     // 네트워크가 없는 경우 추가
-    if (switchError.code === 4902) {
+    if (switchError && typeof switchError === 'object' && 'code' in switchError && switchError.code === 4902) {
       try {
         await injected.request({
           method: 'wallet_addEthereumChain',
@@ -62,7 +62,7 @@ export async function switchToSepolia(): Promise<void> {
             },
           ],
         })
-      } catch (addError) {
+      } catch {
         throw new Error('Sepolia 네트워크를 추가할 수 없습니다.')
       }
     } else {

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   connectWallet,
   getAccountAndNetwork,
@@ -24,11 +24,6 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false)
   const [message, setMessage] = useState<string>('')
 
-  useEffect(() => {
-    refreshBasics()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   function getErrorMessage(err: unknown): string {
     if (typeof err === 'string') return err
     if (err && typeof err === 'object' && 'message' in err) {
@@ -38,7 +33,7 @@ export default function Home() {
     return ''
   }
 
-  async function refreshBasics() {
+  const refreshBasics = useCallback(async () => {
     try {
       const info = await getAccountAndNetwork()
       setAccount(info.account)
@@ -47,10 +42,14 @@ export default function Home() {
       const [b, o] = await Promise.all([readContractBalance(), readOwner()])
       setBalanceEth(b)
       setOwner(o)
-    } catch (e) {
+    } catch {
       // 무시: 초기 로드에서 지갑이 없어도 됨
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    refreshBasics()
+  }, [refreshBasics])
 
   async function onConnect() {
     setLoading(true)
