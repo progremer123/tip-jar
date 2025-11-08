@@ -35,14 +35,33 @@ export default function Home() {
 
   const refreshBasics = useCallback(async () => {
     try {
+      console.log('Refreshing basics...')
       const info = await getAccountAndNetwork()
+      console.log('Account info:', info)
       setAccount(info.account)
       setChainId(info.chainId)
       setChainName(info.chainName)
-      const [b, o] = await Promise.all([readContractBalance(), readOwner()])
-      setBalanceEth(b)
-      setOwner(o)
-    } catch {
+      
+      // 개별적으로 시도하여 어느 부분이 실패하는지 확인
+      try {
+        const balance = await readContractBalance()
+        console.log('Balance read:', balance)
+        setBalanceEth(balance)
+      } catch (balanceError) {
+        console.error('Failed to read balance:', balanceError)
+        setBalanceEth('0')
+      }
+      
+      try {
+        const owner = await readOwner()
+        console.log('Owner read:', owner)
+        setOwner(owner)
+      } catch (ownerError) {
+        console.error('Failed to read owner:', ownerError)
+        setOwner('')
+      }
+    } catch (error) {
+      console.error('Error in refreshBasics:', error)
       // 무시: 초기 로드에서 지갑이 없어도 됨
     }
   }, [])

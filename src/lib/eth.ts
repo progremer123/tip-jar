@@ -94,23 +94,52 @@ export async function connectWallet(): Promise<string> {
 }
 
 export async function getContract(withSigner = false): Promise<Contract> {
-  const provider = getBrowserProvider()
-  if (withSigner) {
-    const signer = await getSigner()
-    return new Contract(contractAddress, abi, signer)
+  try {
+    const provider = getBrowserProvider()
+    console.log('Provider created:', !!provider)
+    
+    if (withSigner) {
+      const signer = await getSigner()
+      console.log('Signer created:', !!signer)
+      return new Contract(contractAddress, abi, signer)
+    }
+    
+    console.log('Creating read-only contract with address:', contractAddress)
+    return new Contract(contractAddress, abi, provider)
+  } catch (error) {
+    console.error('Error creating contract:', error)
+    throw error
   }
-  return new Contract(contractAddress, abi, provider)
 }
 
 export async function readContractBalance(): Promise<string> {
-  const contract = await getContract(false)
-  const raw = (await contract.getBalance()) as bigint
-  return formatEther(raw)
+  try {
+    console.log('Reading balance from contract:', contractAddress)
+    const contract = await getContract(false)
+    console.log('Contract instance created for balance')
+    const raw = (await contract.getBalance()) as bigint
+    console.log('Raw balance:', raw.toString())
+    const formatted = formatEther(raw)
+    console.log('Formatted balance:', formatted)
+    return formatted
+  } catch (error) {
+    console.error('Error reading contract balance:', error)
+    throw error
+  }
 }
 
 export async function readOwner(): Promise<string> {
-  const contract = await getContract(false)
-  return (await contract.owner()) as string
+  try {
+    console.log('Reading owner from contract:', contractAddress)
+    const contract = await getContract(false)
+    console.log('Contract instance created')
+    const owner = (await contract.owner()) as string
+    console.log('Owner read successfully:', owner)
+    return owner
+  } catch (error) {
+    console.error('Error reading owner:', error)
+    throw error
+  }
 }
 
 export async function sendTip(amountEth: string): Promise<string> {
